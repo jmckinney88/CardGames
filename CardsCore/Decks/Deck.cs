@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using CardsCore.Cards;
 
 namespace CardsCore.Decks
 {
-    public class Deck
+    public class Deck : IEnumerable<Card>
     {
         private Stack<Card> cards;
 
@@ -58,17 +60,35 @@ namespace CardsCore.Decks
             return cards.Pop();
         }
 
-        public void PrintDeck()
+        public void Clear() {
+            cards.Clear();
+        }
+
+        public Card Peek() {
+            return cards.Peek();
+        }
+
+        public override String ToString()
         {
+            StringBuilder stringBuilder = new StringBuilder();
             int i = 1;
             foreach (Card card in cards)
             {
-                Console.WriteLine("Card {0}: {1} of {2}. Value: {3}", i, card.Face, card.Suit, card.Value);
+                stringBuilder.AppendLine(String.Format("Card {0}: {1}", i, card));
                 i++;
             }
+
+            return stringBuilder.ToString();
         }
 
+        public IEnumerator<Card> GetEnumerator()
+        {
+            return cards.GetEnumerator();
+        }
 
-
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
     }
 }

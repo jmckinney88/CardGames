@@ -10,23 +10,24 @@ namespace Blackjack
 {
     public class BlackjackGame
     {
-        int chips;
         Deck deck;
         Deck discard;
-        List<Card> userHand;
-        List<Card> dealerHand;
+        Player player;
+        Player dealer;
         IDeckFactory standardDeckFactory;
         IDeckFactory emptyDeckFactory;
 
         protected void Init() {
-            chips = 500;
+            player = new Player("You");
+            player.Chips = 500;
+            player.Hand.Clear();
             standardDeckFactory = new StandardDeckFactory();
             emptyDeckFactory = new EmptyDeckFactory();
             deck = standardDeckFactory.CreateDeck();
             deck.Shuffle();
             discard = emptyDeckFactory.CreateDeck();
-            userHand = new List<Card>();
-            dealerHand = new List<Card>();
+            dealer = new Player("Dealer");
+            dealer.Hand.Clear();
         }
 
         public void Run() {
@@ -35,7 +36,7 @@ namespace Blackjack
 
             Init();
 
-            while (chips > 0)
+            while (player.Chips > 0)
             {
                 PlayRound();
                 Console.WriteLine("\nPress any key to continue...\n");
@@ -47,17 +48,15 @@ namespace Blackjack
         }
 
         protected void PrepareDecks() {
-            for (int index = 0; index < userHand.Count; index++)
+            while(player.Hand.NumCards > 0)
             {
-                discard.Push(userHand[index]);
+                discard.Push(player.Hand.Pop());
             }
-            userHand.Clear();
 
-            for (int index = 0; index < dealerHand.Count; index++)
+            while (dealer.Hand.NumCards > 0)
             {
-                discard.Push(dealerHand[index]);
+                discard.Push(dealer.Hand.Pop());
             }
-            dealerHand.Clear();
 
 
             if (deck.NumCards < 20)
@@ -72,25 +71,25 @@ namespace Blackjack
 
         protected void DisplayPlayerState() {
             Console.WriteLine("Remaining Cards: {0}", deck.NumCards);
-            Console.WriteLine("Current Chips: {0}", chips);
+            Console.WriteLine(player);
         }
 
         protected int PromptPlayerForBet() {
-            Console.WriteLine("How much would you like to bet? (1 - {0})", chips);
+            Console.WriteLine("How much would you like to bet? (1 - {0})", player.Chips);
             string input = Console.ReadLine().Trim().Replace(" ", "");
             int betAmount;
-            while (!Int32.TryParse(input, out betAmount) || betAmount < 1 || betAmount > chips)
+            while (!Int32.TryParse(input, out betAmount) || betAmount < 1 || betAmount > player.Chips)
             {
-                Console.WriteLine("Try Again. How much would you like to bet? (1 - {0})", chips);
+                Console.WriteLine("Try Again. How much would you like to bet? (1 - {0})", player.Chips);
                 input = Console.ReadLine().Trim().Replace(" ", "");
             }
             Console.WriteLine();
             return betAmount;
         }
 
-        protected void Deal(List<Card> hand) {
-            hand.Add(deck.Pop());
-            hand.Add(deck.Pop());
+        protected void Deal(Deck hand) {
+            hand.Push(deck.Pop());
+            hand.Push(deck.Pop());
 
             foreach (Card card in hand)
             {
@@ -102,14 +101,15 @@ namespace Blackjack
             }
         }
 
-        protected static void DisplayHandState(List<Card> hand, String playerName, int numHole=0) {
+        protected static void DisplayHandState(Deck hand, String playerName, int numHole=0) {
             Console.WriteLine("[{0}]", playerName);
+            List<Card> cards = new List<Card>(hand);
             int handValue = 0;
-            for (int index = 0; index < hand.Count - numHole; index++){
-                Console.WriteLine("Card {0}: {1}", index + 1, hand[index]);
-                handValue += hand[index].Value;
+            for (int index = 0; index < cards.Count - numHole; index++){
+                Console.WriteLine("Card {0}: {1}", index + 1, cards[index]);
+                handValue += cards[index].Value;
             }
-            for (int index = hand.Count - numHole; index < hand.Count; index++){
+            for (int index = cards.Count - numHole; index < cards.Count; index++){
                 Console.WriteLine("Card {0}: [Hole Card]", index + 1);
             }
             Console.WriteLine("Total: {0}\n", handValue);
@@ -141,24 +141,26 @@ namespace Blackjack
         protected bool CheckForDealerBlackjack(int betAmount, bool insurance) {
             Console.WriteLine("Dealer checks if they have blackjack...\n");
             Thread.Sleep(2000);
-            if (dealerHand.Sum(card => card.Value) == 21)
+            if (dealer.Hand.Sum(card => card.Value) == 21)
             {
-                DisplayHandState(dealerHand, "Dealer");
+                DisplayHandState(dealer.Hand, "Dealer");
 
                 Thread.Sleep(2000);
 
                 int amountLost = 0;
 
-                if (userHand.Sum(card => card.Value) == 21 && insurance)
+                int playerScore = player.Hand.Sum(card => card.Value);
+
+                if (playerScore == 21 && insurance)
                 {
                     amountLost = betAmount / 2;
                 }
-                else if (userHand.Sum(card => card.Value) != 21 && !insurance)
+                else if (playerScore != 21 && !insurance)
                 {
                     amountLost = betAmount + betAmount / 2;
                 }
 
-                chips -= amountLost;
+                player.Chips -= amountLost;
 
                 Console.WriteLine("Good Try! However, you lost {0} chips", amountLost);
 
@@ -186,14 +188,14 @@ namespace Blackjack
         /// </summary>
         protected bool Hit(int betAmount){
             Card newCard = deck.Pop();
-            userHand.Add(newCard);
+            player.Hand.Push(newCard);
             Console.WriteLine("You Hit: {0}", newCard);
-            int totalCardsValue = userHand.Sum(card => card.Value);
-            DisplayHandState(userHand, "You");
+            int totalCardsValue = player.Hand.Sum(card => card.Value);
+            DisplayHandState(player.Hand, player.Name);
             if (totalCardsValue > 21)
             {
                 Console.Write("Busted!\n");
-                chips -= betAmount;
+                player.Chips -= betAmount;
                 Thread.Sleep(2000);
                 return false;
             }
@@ -212,19 +214,20 @@ namespace Blackjack
             int betAmount = PromptPlayerForBet();
 
 
-            Deal(userHand);
-            DisplayHandState(userHand, "You");
+            Deal(player.Hand);
+            DisplayHandState(player.Hand, "You");
 
-            Deal(dealerHand);
-            DisplayHandState(dealerHand, "Dealer", 1);
+            Deal(dealer.Hand);
+            DisplayHandState(dealer.Hand, "Dealer", 1);
 
             bool insurance = false;
-            if (dealerHand[0].Face == Face.Ace)
+
+            if (dealer.Hand.Peek().Face == Face.Ace)
             {
                 insurance = PromptPlayerForInsurance();
             }
 
-            if (dealerHand[0].Face == Face.Ace || dealerHand[0].Value == 10)
+            if (dealer.Hand.Peek().Face == Face.Ace || dealer.Hand.Peek().Value == 10)
             {
                 if(CheckForDealerBlackjack(betAmount, insurance)){
                     return;
@@ -235,10 +238,10 @@ namespace Blackjack
                 }
             }
 
-            if (userHand.Sum(card => card.Value) == 21)
+            if (player.Hand.Sum(card => card.Value) == 21)
             {
                 Console.WriteLine("Blackjack!! You Won! ({0} chips)\n", betAmount + betAmount / 2);
-                chips += betAmount + betAmount / 2;
+                player.Chips += betAmount + betAmount / 2;
                 return;
             }
 
@@ -256,40 +259,40 @@ namespace Blackjack
 
                     case ConsoleKey.S:
 
-                        DisplayHandState(dealerHand, "Dealer");
+                        DisplayHandState(dealer.Hand, dealer.Name);
 
-                        int dealerCardsValue = dealerHand.Sum(card => card.Value);
+                        int dealerCardsValue = dealer.Hand.Sum(card => card.Value);
 
                         while (dealerCardsValue < 17)
                         {
                             Thread.Sleep(2000);
                             Card newCard = deck.Pop();
-                            dealerHand.Add(newCard);
+                            dealer.Hand.Push(newCard);
                             dealerCardsValue += newCard.Value;
-                            Console.WriteLine("Card {0}: {1}", dealerHand.Count, newCard);
+                            Console.WriteLine("Card {0}: {1}", dealer.Hand.NumCards, newCard);
                         }
                         Console.WriteLine("Total: {0}\n", dealerCardsValue);
 
                         if (dealerCardsValue > 21)
                         {
                             Console.WriteLine("Dealer busts! You win! ({0} chips)", betAmount);
-                            chips += betAmount;
+                            player.Chips += betAmount;
                             return;
                         }
                         else
                         {
-                            int playerCardValue = userHand.Sum(card => card.Value);
+                            int playerCardValue = player.Hand.Sum(card => card.Value);
 
                             if (dealerCardsValue > playerCardValue)
                             {
                                 Console.WriteLine("Dealer has {0} and you have {1}, dealer wins!", dealerCardsValue, playerCardValue);
-                                chips -= betAmount;
+                                player.Chips -= betAmount;
                                 return;
                             }
                             else
                             {
                                 Console.WriteLine("You have {0} and dealer has {1}, you win!", playerCardValue, dealerCardsValue);
-                                chips += betAmount;
+                                player.Chips += betAmount;
                                 return;
                             }
                         }

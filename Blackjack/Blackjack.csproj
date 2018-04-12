@@ -32,6 +32,7 @@
   <ItemGroup>
     <Compile Include="BlackjackGame.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Player.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CardsCore\CardsCore.csproj">
