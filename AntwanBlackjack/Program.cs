@@ -10,7 +10,8 @@ namespace ConsoleBlackjack
 
         static void Main()
         {
-            BlackjackGame.Run();
+            BlackjackGame game = new BlackjackGame();
+            game.Run();
         }
 
     }

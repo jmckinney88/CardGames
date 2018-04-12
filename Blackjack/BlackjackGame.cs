@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
 using CardsCore.Cards;
@@ -28,7 +29,7 @@ namespace Blackjack
             dealerHand = new List<Card>();
         }
 
-        public void Run(){
+        public void Run() {
             Console.Title = "♠♥♣♦ House of Payne Blackjack ♦♣♥♠";
             Console.WriteLine("House of Payne Blackjack!!\n");
 
@@ -36,7 +37,7 @@ namespace Blackjack
 
             while (chips > 0)
             {
-                DealHand();
+                PlayRound();
                 Console.WriteLine("\nPress any key to continue...\n");
                 ConsoleKeyInfo userInput = Console.ReadKey(true);
             }
@@ -45,9 +46,9 @@ namespace Blackjack
             Console.ReadLine();
         }
 
-        protected void DealHand()
-        {
-            for (int index = 0; index < userHand.Count; index++){
+        protected void PrepareDecks() {
+            for (int index = 0; index < userHand.Count; index++)
+            {
                 discard.Push(userHand[index]);
             }
             userHand.Clear();
@@ -61,14 +62,20 @@ namespace Blackjack
 
             if (deck.NumCards < 20)
             {
-                while(discard.NumCards > 0){
+                while (discard.NumCards > 0)
+                {
                     deck.Push(discard.Pop());
                 }
                 deck.Shuffle();
             }
+        }
 
+        protected void DisplayPlayerState() {
             Console.WriteLine("Remaining Cards: {0}", deck.NumCards);
             Console.WriteLine("Current Chips: {0}", chips);
+        }
+
+        protected int PromptPlayerForBet() {
             Console.WriteLine("How much would you like to bet? (1 - {0})", chips);
             string input = Console.ReadLine().Trim().Replace(" ", "");
             int betAmount;
@@ -78,12 +85,14 @@ namespace Blackjack
                 input = Console.ReadLine().Trim().Replace(" ", "");
             }
             Console.WriteLine();
+            return betAmount;
+        }
 
-            
-            userHand.Add(deck.Pop());
-            userHand.Add(deck.Pop());
+        protected void Deal(List<Card> hand) {
+            hand.Add(deck.Pop());
+            hand.Add(deck.Pop());
 
-            foreach (Card card in userHand)
+            foreach (Card card in hand)
             {
                 if (card.Face == Face.Ace)
                 {
@@ -91,85 +100,133 @@ namespace Blackjack
                     break;
                 }
             }
+        }
 
-            Console.WriteLine("[You]");
-            Console.WriteLine("Card 1: {0} of {1}", userHand[0].Face, userHand[0].Suit);
-            Console.WriteLine("Card 2: {0} of {1}", userHand[1].Face, userHand[1].Suit);
-            Console.WriteLine("Total: {0}\n", userHand[0].Value + userHand[1].Value);
+        protected static void DisplayHandState(List<Card> hand, String playerName, int numHole=0) {
+            Console.WriteLine("[{0}]", playerName);
+            int handValue = 0;
+            for (int index = 0; index < hand.Count - numHole; index++){
+                Console.WriteLine("Card {0}: {1}", index + 1, hand[index]);
+                handValue += hand[index].Value;
+            }
+            for (int index = hand.Count - numHole; index < hand.Count; index++){
+                Console.WriteLine("Card {0}: [Hole Card]", index + 1);
+            }
+            Console.WriteLine("Total: {0}\n", handValue);
+        }
 
-            
-            dealerHand.Add(deck.Pop());
-            dealerHand.Add(deck.Pop());
-
-            foreach (Card card in dealerHand)
+        protected static bool PromptPlayerForInsurance() {
+            Console.WriteLine("Would you care for Insurance? (y / n)");
+            string userInput = Console.ReadLine();
+            bool insurance = false;
+            while (userInput != "y" && userInput != "n")
             {
-                if (card.Face == Face.Ace)
-                {
-                    card.Value += 10;
-                    break;
-                }
+                Console.WriteLine("I did not understand. Insurance? (y / n)");
+                userInput = Console.ReadLine();
             }
 
-            Console.WriteLine("[Dealer]");
-            Console.WriteLine("Card 1: {0} of {1}", dealerHand[0].Face, dealerHand[1].Suit);
-            Console.WriteLine("Card 2: [Hole Card]");
-            Console.WriteLine("Total: {0}\n", dealerHand[0].Value);
+            if (userInput == "y")
+            {
+                insurance = true;
+                Console.WriteLine("\n[Insurance Accepted!]\n");
+            }
+            else
+            {
+                insurance = false;
+                Console.WriteLine("\n[Insurance Rejected]\n");
+            }
+            return insurance;
+        }
+
+        protected bool CheckForDealerBlackjack(int betAmount, bool insurance) {
+            Console.WriteLine("Dealer checks if they have blackjack...\n");
+            Thread.Sleep(2000);
+            if (dealerHand.Sum(card => card.Value) == 21)
+            {
+                DisplayHandState(dealerHand, "Dealer");
+
+                Thread.Sleep(2000);
+
+                int amountLost = 0;
+
+                if (userHand.Sum(card => card.Value) == 21 && insurance)
+                {
+                    amountLost = betAmount / 2;
+                }
+                else if (userHand.Sum(card => card.Value) != 21 && !insurance)
+                {
+                    amountLost = betAmount + betAmount / 2;
+                }
+
+                chips -= amountLost;
+
+                Console.WriteLine("Good Try! However, you lost {0} chips", amountLost);
+
+                Thread.Sleep(1000);
+
+                return true;
+            }
+            return false;
+        }
+
+        protected ConsoleKeyInfo PromptPlayerForAction() {
+            Console.WriteLine("Please choose a valid option: [(S)tand (H)it]");
+            ConsoleKeyInfo userOption = Console.ReadKey(true);
+            while (userOption.Key != ConsoleKey.H && userOption.Key != ConsoleKey.S)
+            {
+                Console.WriteLine("I don't understand, Would you like to Stand or Hit?: [(S)tand (H)it]");
+                userOption = Console.ReadKey(true);
+            }
+            Console.WriteLine();
+            return userOption;
+        }
+
+        /// <summary>
+        /// Returns true if the player has not busted.
+        /// </summary>
+        protected bool Hit(int betAmount){
+            Card newCard = deck.Pop();
+            userHand.Add(newCard);
+            Console.WriteLine("You Hit: {0}", newCard);
+            int totalCardsValue = userHand.Sum(card => card.Value);
+            DisplayHandState(userHand, "You");
+            if (totalCardsValue > 21)
+            {
+                Console.Write("Busted!\n");
+                chips -= betAmount;
+                Thread.Sleep(2000);
+                return false;
+            }
+            else if (totalCardsValue == 21)
+            {
+                Console.WriteLine("Great Job! I highly recommend you Stand...\n");
+                Thread.Sleep(2000);
+            }
+            return true;
+        }
+
+        protected void PlayRound() {
+            PrepareDecks();
+            DisplayPlayerState();
+
+            int betAmount = PromptPlayerForBet();
+
+
+            Deal(userHand);
+            DisplayHandState(userHand, "You");
+
+            Deal(dealerHand);
+            DisplayHandState(dealerHand, "Dealer", 1);
 
             bool insurance = false;
-
             if (dealerHand[0].Face == Face.Ace)
             {
-                Console.WriteLine("Would you care for Insurance? (y / n)");
-                string userInput = Console.ReadLine();
-
-                while (userInput != "y" && userInput != "n")
-                {
-                    Console.WriteLine("I did not understand. Insurance? (y / n)");
-                    userInput = Console.ReadLine();
-                }
-
-                if (userInput == "y")
-                {
-                    insurance = true;
-                    Console.WriteLine("\n[Insurance Accepted!]\n");
-                }
-                else
-                {
-                    insurance = false;
-                    Console.WriteLine("\n[Insurance Rejected]\n");
-                }
+                insurance = PromptPlayerForInsurance();
             }
 
             if (dealerHand[0].Face == Face.Ace || dealerHand[0].Value == 10)
             {
-                Console.WriteLine("Dealer checks if they have blackjack...\n");
-                Thread.Sleep(2000);
-                if (dealerHand[0].Value + dealerHand[1].Value == 21)
-                {
-                    Console.WriteLine("[Dealer]");
-                    Console.WriteLine("Card 1: {0} of {1}", dealerHand[0].Face, dealerHand[1].Suit);
-                    Console.WriteLine("Card 2: {0} of {1}", dealerHand[1].Face, dealerHand[1].Suit);
-                    Console.WriteLine("Total: {0}\n", dealerHand[0].Value + dealerHand[1].Value);
-
-                    Thread.Sleep(2000);
-
-                    int amountLost = 0;
-
-                    if (userHand[0].Value + userHand[1].Value == 21 && insurance)
-                    {
-                        amountLost = betAmount / 2;
-                    }
-                    else if (userHand[0].Value + userHand[1].Value != 21 && !insurance)
-                    {
-                        amountLost = betAmount + betAmount / 2;
-                    }
-
-                    chips -= amountLost;
-
-                    Console.WriteLine("Good Try! However, you lost {0} chips", amountLost);
-
-                    Thread.Sleep(1000);
-
+                if(CheckForDealerBlackjack(betAmount, insurance)){
                     return;
                 }
                 else
@@ -178,7 +235,7 @@ namespace Blackjack
                 }
             }
 
-            if (userHand[0].Value + userHand[1].Value == 21)
+            if (userHand.Sum(card => card.Value) == 21)
             {
                 Console.WriteLine("Blackjack!! You Won! ({0} chips)\n", betAmount + betAmount / 2);
                 chips += betAmount + betAmount / 2;
@@ -187,72 +244,29 @@ namespace Blackjack
 
             do
             {
-                Console.WriteLine("Please choose a valid option: [(S)tand (H)it]");
-                ConsoleKeyInfo userOption = Console.ReadKey(true);
-                while (userOption.Key != ConsoleKey.H && userOption.Key != ConsoleKey.S)
-                {
-                    Console.WriteLine("I don't understand, Would you like to Stand or Hit?: [(S)tand (H)it]");
-                    userOption = Console.ReadKey(true);
-                }
-                Console.WriteLine();
+                ConsoleKeyInfo userOption = PromptPlayerForAction();
 
                 switch (userOption.Key)
                 {
                     case ConsoleKey.H:
-                        userHand.Add(deck.Pop());
-                        Console.WriteLine("You Hit {0} of {1}", userHand[userHand.Count - 1].Face, userHand[userHand.Count - 1].Suit);
-                        int totalCardsValue = 0;
-                        foreach (Card card in userHand)
-                        {
-                            totalCardsValue += card.Value;
-                        }
-                        Console.WriteLine("Total cards value now: {0}\n", totalCardsValue);
-                        if (totalCardsValue > 21)
-                        {
-                            Console.Write("Busted!\n");
-                            chips -= betAmount;
-                            Thread.Sleep(2000);
+                        if(!Hit(betAmount)){
                             return;
-                        }
-                        else if (totalCardsValue == 21)
-                        {
-                            Console.WriteLine("Great Job! I highly recommend you Stand...\n");
-                            Thread.Sleep(2000);
-                            continue;
-                        }
-                        else
-                        {
-                            continue;
                         }
                         break;
 
                     case ConsoleKey.S:
 
-                        Console.WriteLine("[Dealer]");
-                        Console.WriteLine("Card 1: {0} of {1}", dealerHand[0].Face, dealerHand[1].Suit);
-                        Console.WriteLine("Card 2: {0} of {1}", dealerHand[1].Face, dealerHand[1].Suit);
+                        DisplayHandState(dealerHand, "Dealer");
 
-                        int dealerCardsValue = 0;
-                        foreach (Card card in dealerHand)
-                        {
-                            dealerCardsValue += card.Value;
-                        }
+                        int dealerCardsValue = dealerHand.Sum(card => card.Value);
 
                         while (dealerCardsValue < 17)
                         {
                             Thread.Sleep(2000);
-                            dealerHand.Add(deck.Pop());
-                            dealerCardsValue = 0;
-                            foreach (Card card in dealerHand)
-                            {
-                                dealerCardsValue += card.Value;
-                            }
-                            Console.WriteLine("Card {0}: {1} of {2}", dealerHand.Count, dealerHand[dealerHand.Count - 1].Face, dealerHand[dealerHand.Count - 1].Suit);
-                        }
-                        dealerCardsValue = 0;
-                        foreach (Card card in dealerHand)
-                        {
-                            dealerCardsValue += card.Value;
+                            Card newCard = deck.Pop();
+                            dealerHand.Add(newCard);
+                            dealerCardsValue += newCard.Value;
+                            Console.WriteLine("Card {0}: {1}", dealerHand.Count, newCard);
                         }
                         Console.WriteLine("Total: {0}\n", dealerCardsValue);
 
@@ -264,11 +278,7 @@ namespace Blackjack
                         }
                         else
                         {
-                            int playerCardValue = 0;
-                            foreach (Card card in userHand)
-                            {
-                                playerCardValue += card.Value;
-                            }
+                            int playerCardValue = userHand.Sum(card => card.Value);
 
                             if (dealerCardsValue > playerCardValue)
                             {
@@ -288,8 +298,6 @@ namespace Blackjack
                     default:
                         break;
                 }
-
-                Console.ReadLine();
             }
             while (true);
         }
