@@ -1,7 +1,11 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleBlackjack", "AntwanBlackjack\ConsoleBlackjack.csproj", "{AD90DA72-5BA4-40C5-A437-D52DB398104C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGameConsole", "AntwanBlackjack\CardGameConsole.csproj", "{AD90DA72-5BA4-40C5-A437-D52DB398104C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardsCore", "CardsCore\CardsCore.csproj", "{31D4E152-0413-4DAA-AB52-3A1269BAA3E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blackjack", "Blackjack\Blackjack.csproj", "{2F7A9828-4A73-4FA3-8229-22038E96BC05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,5 +17,13 @@ Global
 		{AD90DA72-5BA4-40C5-A437-D52DB398104C}.Debug|x86.Build.0 = Debug|x86
 		{AD90DA72-5BA4-40C5-A437-D52DB398104C}.Release|x86.ActiveCfg = Release|x86
 		{AD90DA72-5BA4-40C5-A437-D52DB398104C}.Release|x86.Build.0 = Release|x86
+		{31D4E152-0413-4DAA-AB52-3A1269BAA3E1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{31D4E152-0413-4DAA-AB52-3A1269BAA3E1}.Debug|x86.Build.0 = Debug|Any CPU
+		{31D4E152-0413-4DAA-AB52-3A1269BAA3E1}.Release|x86.ActiveCfg = Release|Any CPU
+		{31D4E152-0413-4DAA-AB52-3A1269BAA3E1}.Release|x86.Build.0 = Release|Any CPU
+		{2F7A9828-4A73-4FA3-8229-22038E96BC05}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2F7A9828-4A73-4FA3-8229-22038E96BC05}.Debug|x86.Build.0 = Debug|Any CPU
+		{2F7A9828-4A73-4FA3-8229-22038E96BC05}.Release|x86.ActiveCfg = Release|Any CPU
+		{2F7A9828-4A73-4FA3-8229-22038E96BC05}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
