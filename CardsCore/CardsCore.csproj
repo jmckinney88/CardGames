@@ -35,10 +35,14 @@
     <Compile Include="Cards\Face.cs" />
     <Compile Include="Cards\Card.cs" />
     <Compile Include="Decks\Deck.cs" />
+    <Compile Include="Decks\Factories\IDeckFactory.cs" />
+    <Compile Include="Decks\Factories\StandardDeckFactory.cs" />
+    <Compile Include="Decks\Factories\EmptyDeckFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Cards\" />
     <Folder Include="Decks\" />
+    <Folder Include="Decks\Factories\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

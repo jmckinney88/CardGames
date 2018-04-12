@@ -3,6 +3,7 @@ using System.Threading;
 using System.Collections.Generic;
 using CardsCore.Cards;
 using CardsCore.Decks;
+using CardsCore.Decks.Factories;
 
 namespace Blackjack
 {
@@ -10,16 +11,24 @@ namespace Blackjack
     {
         static int chips;
         static Deck deck;
+        static Deck discard;
         static List<Card> userHand;
         static List<Card> dealerHand;
+        static IDeckFactory standardDeckFactory;
+        static IDeckFactory emptyDeckFactory;
 
         public static void Run(){
             Console.Title = "♠♥♣♦ House of Payne Blackjack ♦♣♥♠";
             Console.WriteLine("House of Payne Blackjack!!\n");
 
             chips = 500;
-            deck = new Deck();
+            standardDeckFactory = new StandardDeckFactory();
+            emptyDeckFactory = new EmptyDeckFactory();
+            deck = standardDeckFactory.CreateDeck();
             deck.Shuffle();
+            discard = emptyDeckFactory.CreateDeck();
+            userHand = new List<Card>();
+            dealerHand = new List<Card>();
 
             while (chips > 0)
             {
@@ -34,13 +43,27 @@ namespace Blackjack
 
         static void DealHand()
         {
-            if (deck.GetAmountOfRemainingCrads() < 20)
+            for (int index = 0; index < userHand.Count; index++){
+                discard.Push(userHand[index]);
+            }
+            userHand.Clear();
+
+            for (int index = 0; index < dealerHand.Count; index++)
             {
-                deck.Initialize();
+                discard.Push(dealerHand[index]);
+            }
+            dealerHand.Clear();
+
+
+            if (deck.NumCards < 20)
+            {
+                while(discard.NumCards > 0){
+                    deck.Push(discard.Pop());
+                }
                 deck.Shuffle();
             }
 
-            Console.WriteLine("Remaining Cards: {0}", deck.GetAmountOfRemainingCrads());
+            Console.WriteLine("Remaining Cards: {0}", deck.NumCards);
             Console.WriteLine("Current Chips: {0}", chips);
             Console.WriteLine("How much would you like to bet? (1 - {0})", chips);
             string input = Console.ReadLine().Trim().Replace(" ", "");
@@ -52,9 +75,9 @@ namespace Blackjack
             }
             Console.WriteLine();
 
-            userHand = new List<Card>();
-            userHand.Add(deck.DrawACard());
-            userHand.Add(deck.DrawACard());
+            
+            userHand.Add(deck.Pop());
+            userHand.Add(deck.Pop());
 
             foreach (Card card in userHand)
             {
@@ -70,9 +93,9 @@ namespace Blackjack
             Console.WriteLine("Card 2: {0} of {1}", userHand[1].Face, userHand[1].Suit);
             Console.WriteLine("Total: {0}\n", userHand[0].Value + userHand[1].Value);
 
-            dealerHand = new List<Card>();
-            dealerHand.Add(deck.DrawACard());
-            dealerHand.Add(deck.DrawACard());
+            
+            dealerHand.Add(deck.Pop());
+            dealerHand.Add(deck.Pop());
 
             foreach (Card card in dealerHand)
             {
@@ -172,7 +195,7 @@ namespace Blackjack
                 switch (userOption.Key)
                 {
                     case ConsoleKey.H:
-                        userHand.Add(deck.DrawACard());
+                        userHand.Add(deck.Pop());
                         Console.WriteLine("You Hit {0} of {1}", userHand[userHand.Count - 1].Face, userHand[userHand.Count - 1].Suit);
                         int totalCardsValue = 0;
                         foreach (Card card in userHand)
@@ -214,7 +237,7 @@ namespace Blackjack
                         while (dealerCardsValue < 17)
                         {
                             Thread.Sleep(2000);
-                            dealerHand.Add(deck.DrawACard());
+                            dealerHand.Add(deck.Pop());
                             dealerCardsValue = 0;
                             foreach (Card card in dealerHand)
                             {

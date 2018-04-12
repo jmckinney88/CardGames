@@ -6,61 +6,56 @@ namespace CardsCore.Decks
 {
     public class Deck
     {
-        private List<Card> cards;
+        private Stack<Card> cards;
 
         public Deck()
         {
-            this.Initialize();
+            cards = new Stack<Card>();
         }
 
-        public void Initialize()
-        {
-            cards = new List<Card>();
-
-            for (int i = 0; i < 4; i++)
-            {
-                for (int j = 0; j < 13; j++)
-                {
-                    cards.Add(new Card() { Suit = (Suit)i, Face = (Face)j });
-
-                    if (j <= 8)
-                        cards[cards.Count - 1].Value = j + 1;
-                    else
-                        cards[cards.Count - 1].Value = 10;
-                }
-            }
-        }
-
+        /// <summary>
+        /// Shuffles the deck three times;
+        /// </summary>
         public void Shuffle()
         {
+            Shuffle(3);
+        }
+
+        public void Shuffle(int numShuffles) {
             Random rng = new Random();
-            int n = cards.Count;
-            while (n > 1)
+            var cardList = new List<Card>(cards);
+            cards.Clear();
+            for (int shuffleCount = 0; shuffleCount < numShuffles; shuffleCount++)
             {
-                n--;
-                int k = rng.Next(n + 1);
-                Card card = cards[k];
-                cards[k] = cards[n];
-                cards[n] = card;
+                for (int cardIndex = cardList.Count - 1; cardIndex > 0; cardIndex--)
+                {
+                    //indexToMove can be any index of a card that has not moved and
+                    // is not the current card to move.
+                    int indexToMove = rng.Next(0, cardIndex);
+                    Card card = cardList[indexToMove];
+                    cardList[indexToMove] = cardList[cardIndex];
+                    cardList[cardIndex] = card;
+                }
+            }
+
+            for (int index = 0; index < cardList.Count; index++)
+            {
+                Push(cardList[index]);
             }
         }
 
-        public Card DrawACard()
-        {
-            if (cards.Count <= 0)
-            {
-                this.Initialize();
-                this.Shuffle();
-            }
-
-            Card cardToReturn = cards[cards.Count - 1];
-            cards.RemoveAt(cards.Count - 1);
-            return cardToReturn;
+        public void Push(Card card){
+            cards.Push(card);
         }
 
-        public int GetAmountOfRemainingCrads()
+        public int NumCards { get { return cards.Count; } }
+
+        public Card Pop()
         {
-            return cards.Count;
+            if (NumCards <= 0){
+                throw new InvalidOperationException("Deck is empty");   
+            }
+            return cards.Pop();
         }
 
         public void PrintDeck()
