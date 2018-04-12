@@ -7,20 +7,17 @@ using CardsCore.Decks.Factories;
 
 namespace Blackjack
 {
-    public static class BlackjackGame
+    public class BlackjackGame
     {
-        static int chips;
-        static Deck deck;
-        static Deck discard;
-        static List<Card> userHand;
-        static List<Card> dealerHand;
-        static IDeckFactory standardDeckFactory;
-        static IDeckFactory emptyDeckFactory;
+        int chips;
+        Deck deck;
+        Deck discard;
+        List<Card> userHand;
+        List<Card> dealerHand;
+        IDeckFactory standardDeckFactory;
+        IDeckFactory emptyDeckFactory;
 
-        public static void Run(){
-            Console.Title = "♠♥♣♦ House of Payne Blackjack ♦♣♥♠";
-            Console.WriteLine("House of Payne Blackjack!!\n");
-
+        protected void Init() {
             chips = 500;
             standardDeckFactory = new StandardDeckFactory();
             emptyDeckFactory = new EmptyDeckFactory();
@@ -29,6 +26,13 @@ namespace Blackjack
             discard = emptyDeckFactory.CreateDeck();
             userHand = new List<Card>();
             dealerHand = new List<Card>();
+        }
+
+        public void Run(){
+            Console.Title = "♠♥♣♦ House of Payne Blackjack ♦♣♥♠";
+            Console.WriteLine("House of Payne Blackjack!!\n");
+
+            Init();
 
             while (chips > 0)
             {
@@ -41,7 +45,7 @@ namespace Blackjack
             Console.ReadLine();
         }
 
-        static void DealHand()
+        protected void DealHand()
         {
             for (int index = 0; index < userHand.Count; index++){
                 discard.Push(userHand[index]);
