@@ -17,12 +17,14 @@ namespace Blackjack
             Name = name;
         }
 
-		public override string ToString()
-		{
+        public override string ToString()
+        {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine(String.Format("Chips: {0}", Chips));
-            stringBuilder.AppendLine("[Hand]");
-            stringBuilder.AppendLine(Hand.ToString());
+            if (Hand.NumCards > 0) {
+                stringBuilder.AppendLine("[Hand]");
+                stringBuilder.AppendLine(Hand.ToString());
+            }
             return stringBuilder.ToString();
 		}
 	}
