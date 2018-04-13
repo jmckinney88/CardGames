@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGameConsole", "AntwanBlackjack\CardGameConsole.csproj", "{AD90DA72-5BA4-40C5-A437-D52DB398104C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardGameConsole", "CardGameConsole\CardGameConsole.csproj", "{AD90DA72-5BA4-40C5-A437-D52DB398104C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardsCore", "CardsCore\CardsCore.csproj", "{31D4E152-0413-4DAA-AB52-3A1269BAA3E1}"
 EndProject

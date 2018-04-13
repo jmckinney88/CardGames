@@ -9,3 +9,5 @@ CardsCore/obj
 Utils/obj
 *.user
 *.pdb
+*/obj/*
+*/bin/*
