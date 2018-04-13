@@ -44,6 +44,10 @@
       <Project>{2F7A9828-4A73-4FA3-8229-22038E96BC05}</Project>
       <Name>Blackjack</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.csproj">
+      <Project>{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

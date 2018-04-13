@@ -3,10 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2F7A9828-4A73-4FA3-8229-22038E96BC05}</ProjectGuid>
+    <ProjectGuid>{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Blackjack</RootNamespace>
-    <AssemblyName>Blackjack</AssemblyName>
+    <RootNamespace>Utils</RootNamespace>
+    <AssemblyName>Utils</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -30,19 +30,12 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlackjackGame.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Player.cs" />
+    <Compile Include="IO\IKeyReader.cs" />
+    <Compile Include="IO\ConsoleKeyReader.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CardsCore\CardsCore.csproj">
-      <Project>{31D4E152-0413-4DAA-AB52-3A1269BAA3E1}</Project>
-      <Name>CardsCore</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utils\Utils.csproj">
-      <Project>{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}</Project>
-      <Name>Utils</Name>
-    </ProjectReference>
+    <Folder Include="IO\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

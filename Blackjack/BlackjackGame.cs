@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
+using System.IO;
+using Utils.IO;
 using CardsCore.Cards;
 using CardsCore.Decks;
 using CardsCore.Decks.Factories;
@@ -16,6 +18,37 @@ namespace Blackjack
         Player dealer;
         IDeckFactory standardDeckFactory;
         IDeckFactory emptyDeckFactory;
+        StreamReader inputStream;
+        StreamWriter outputStream;
+        IKeyReader keyReader;
+
+        public String Title { get; private set; }
+
+        public BlackjackGame(StreamReader inputStream, StreamWriter outputStream, IKeyReader keyReader){
+            this.inputStream = inputStream;
+            this.outputStream = outputStream;
+            this.keyReader = keyReader;
+            this.Title = "♠♥♣♦ House of Payne Blackjack ♦♣♥♠";
+        }
+
+
+        protected void WriteLine(String format, params object[] args){
+            outputStream.WriteLine(format, args);
+            outputStream.Flush();
+        }
+
+        protected void WriteLine(){
+            WriteLine("");
+        }
+
+        protected void WriteLine(Object obj){
+            WriteLine(obj.ToString());
+        }
+
+        protected void awaitAnyKey(){
+            WriteLine("\nPress any key to continue...\n");
+            keyReader.ReadKey(true);
+        }
 
         protected void Init() {
             player = new Player("You");
@@ -31,20 +64,18 @@ namespace Blackjack
         }
 
         public void Run() {
-            Console.Title = "♠♥♣♦ House of Payne Blackjack ♦♣♥♠";
-            Console.WriteLine("House of Payne Blackjack!!\n");
+            
+            WriteLine(this.Title);
 
             Init();
 
             while (player.Chips > 0)
             {
                 PlayRound();
-                Console.WriteLine("\nPress any key to continue...\n");
-                ConsoleKeyInfo userInput = Console.ReadKey(true);
+                awaitAnyKey();
             }
 
-            Console.WriteLine("Bankrupt!  Come back to the House of Payne when you have more cash! \n");
-            Console.ReadLine();
+            WriteLine("Bankrupt!  Come back to the House of Payne when you have more cash! \n");
         }
 
         protected void PrepareDecks() {
@@ -70,20 +101,20 @@ namespace Blackjack
         }
 
         protected void DisplayPlayerState() {
-            Console.WriteLine("Remaining Cards: {0}", deck.NumCards);
-            Console.WriteLine(player);
+            WriteLine("Remaining Cards: {0}", deck.NumCards);
+            WriteLine(player);
         }
 
         protected int PromptPlayerForBet() {
-            Console.WriteLine("How much would you like to bet? (1 - {0})", player.Chips);
-            string input = Console.ReadLine().Trim().Replace(" ", "");
+            WriteLine("How much would you like to bet? (1 - {0})", player.Chips);
+            string input = inputStream.ReadLine().Trim().Replace(" ", "");
             int betAmount;
             while (!Int32.TryParse(input, out betAmount) || betAmount < 1 || betAmount > player.Chips)
             {
-                Console.WriteLine("Try Again. How much would you like to bet? (1 - {0})", player.Chips);
-                input = Console.ReadLine().Trim().Replace(" ", "");
+                WriteLine("Try Again. How much would you like to bet? (1 - {0})", player.Chips);
+                input = inputStream.ReadLine().Trim().Replace(" ", "");
             }
-            Console.WriteLine();
+            WriteLine();
             return betAmount;
         }
 
@@ -101,45 +132,45 @@ namespace Blackjack
             }
         }
 
-        protected static void DisplayHandState(Deck hand, String playerName, int numHole=0) {
-            Console.WriteLine("[{0}]", playerName);
+        protected void DisplayHandState(Deck hand, String playerName, int numHole=0) {
+            WriteLine("[{0}]", playerName);
             List<Card> cards = new List<Card>(hand);
             int handValue = 0;
             for (int index = 0; index < cards.Count - numHole; index++){
-                Console.WriteLine("Card {0}: {1}", index + 1, cards[index]);
+                WriteLine("Card {0}: {1}", index + 1, cards[index]);
                 handValue += cards[index].Value;
             }
             for (int index = cards.Count - numHole; index < cards.Count; index++){
-                Console.WriteLine("Card {0}: [Hole Card]", index + 1);
+                WriteLine("Card {0}: [Hole Card]", index + 1);
             }
-            Console.WriteLine("Total: {0}\n", handValue);
+            WriteLine("Total: {0}\n", handValue);
         }
 
-        protected static bool PromptPlayerForInsurance() {
-            Console.WriteLine("Would you care for Insurance? (y / n)");
-            string userInput = Console.ReadLine();
+        protected bool PromptPlayerForInsurance() {
+            WriteLine("Would you care for Insurance? (y / n)");
+            string userInput = inputStream.ReadLine();
             bool insurance = false;
             while (userInput != "y" && userInput != "n")
             {
-                Console.WriteLine("I did not understand. Insurance? (y / n)");
-                userInput = Console.ReadLine();
+                WriteLine("I did not understand. Insurance? (y / n)");
+                userInput = inputStream.ReadLine();
             }
 
             if (userInput == "y")
             {
                 insurance = true;
-                Console.WriteLine("\n[Insurance Accepted!]\n");
+                WriteLine("\n[Insurance Accepted!]\n");
             }
             else
             {
                 insurance = false;
-                Console.WriteLine("\n[Insurance Rejected]\n");
+                WriteLine("\n[Insurance Rejected]\n");
             }
             return insurance;
         }
 
         protected bool CheckForDealerBlackjack(int betAmount, bool insurance) {
-            Console.WriteLine("Dealer checks if they have blackjack...\n");
+            WriteLine("Dealer checks if they have blackjack...\n");
             Thread.Sleep(2000);
             if (dealer.Hand.Sum(card => card.Value) == 21)
             {
@@ -162,7 +193,7 @@ namespace Blackjack
 
                 player.Chips -= amountLost;
 
-                Console.WriteLine("Good Try! However, you lost {0} chips", amountLost);
+                WriteLine("Good Try! However, you lost {0} chips", amountLost);
 
                 Thread.Sleep(1000);
 
@@ -172,14 +203,14 @@ namespace Blackjack
         }
 
         protected ConsoleKeyInfo PromptPlayerForAction() {
-            Console.WriteLine("Please choose a valid option: [(S)tand (H)it]");
-            ConsoleKeyInfo userOption = Console.ReadKey(true);
+            WriteLine("Please choose a valid option: [(S)tand (H)it]");
+            ConsoleKeyInfo userOption = keyReader.ReadKey(true);
             while (userOption.Key != ConsoleKey.H && userOption.Key != ConsoleKey.S)
             {
-                Console.WriteLine("I don't understand, Would you like to Stand or Hit?: [(S)tand (H)it]");
-                userOption = Console.ReadKey(true);
+                WriteLine("I don't understand, Would you like to Stand or Hit?: [(S)tand (H)it]");
+                userOption = keyReader.ReadKey(true);
             }
-            Console.WriteLine();
+            WriteLine();
             return userOption;
         }
 
@@ -189,19 +220,19 @@ namespace Blackjack
         protected bool Hit(int betAmount){
             Card newCard = deck.Pop();
             player.Hand.Push(newCard);
-            Console.WriteLine("You Hit: {0}", newCard);
+            WriteLine("You Hit: {0}", newCard);
             int totalCardsValue = player.Hand.Sum(card => card.Value);
             DisplayHandState(player.Hand, player.Name);
             if (totalCardsValue > 21)
             {
-                Console.Write("Busted!\n");
+                outputStream.Write("Busted!\n");
                 player.Chips -= betAmount;
                 Thread.Sleep(2000);
                 return false;
             }
             else if (totalCardsValue == 21)
             {
-                Console.WriteLine("Great Job! I highly recommend you Stand...\n");
+                WriteLine("Great Job! I highly recommend you Stand...\n");
                 Thread.Sleep(2000);
             }
             return true;
@@ -234,13 +265,13 @@ namespace Blackjack
                 }
                 else
                 {
-                    Console.WriteLine("Dealer does not have a blackjack, moving on...\n");
+                    WriteLine("Dealer does not have a blackjack, moving on...\n");
                 }
             }
 
             if (player.Hand.Sum(card => card.Value) == 21)
             {
-                Console.WriteLine("Blackjack!! You Won! ({0} chips)\n", betAmount + betAmount / 2);
+                WriteLine("Blackjack!! You Won! ({0} chips)\n", betAmount + betAmount / 2);
                 player.Chips += betAmount + betAmount / 2;
                 return;
             }
@@ -269,13 +300,13 @@ namespace Blackjack
                             Card newCard = deck.Pop();
                             dealer.Hand.Push(newCard);
                             dealerCardsValue += newCard.Value;
-                            Console.WriteLine("Card {0}: {1}", dealer.Hand.NumCards, newCard);
+                            WriteLine("Card {0}: {1}", dealer.Hand.NumCards, newCard);
                         }
-                        Console.WriteLine("Total: {0}\n", dealerCardsValue);
+                        WriteLine("Total: {0}\n", dealerCardsValue);
 
                         if (dealerCardsValue > 21)
                         {
-                            Console.WriteLine("Dealer busts! You win! ({0} chips)", betAmount);
+                            WriteLine("Dealer busts! You win! ({0} chips)", betAmount);
                             player.Chips += betAmount;
                             return;
                         }
@@ -285,13 +316,13 @@ namespace Blackjack
 
                             if (dealerCardsValue > playerCardValue)
                             {
-                                Console.WriteLine("Dealer has {0} and you have {1}, dealer wins!", dealerCardsValue, playerCardValue);
+                                WriteLine("Dealer has {0} and you have {1}, dealer wins!", dealerCardsValue, playerCardValue);
                                 player.Chips -= betAmount;
                                 return;
                             }
                             else
                             {
-                                Console.WriteLine("You have {0} and dealer has {1}, you win!", playerCardValue, dealerCardsValue);
+                                WriteLine("You have {0} and dealer has {1}, you win!", playerCardValue, dealerCardsValue);
                                 player.Chips += betAmount;
                                 return;
                             }

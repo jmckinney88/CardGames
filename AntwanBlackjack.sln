@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardsCore", "CardsCore\Card
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blackjack", "Blackjack\Blackjack.csproj", "{2F7A9828-4A73-4FA3-8229-22038E96BC05}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -25,5 +27,9 @@ Global
 		{2F7A9828-4A73-4FA3-8229-22038E96BC05}.Debug|x86.Build.0 = Debug|Any CPU
 		{2F7A9828-4A73-4FA3-8229-22038E96BC05}.Release|x86.ActiveCfg = Release|Any CPU
 		{2F7A9828-4A73-4FA3-8229-22038E96BC05}.Release|x86.Build.0 = Release|Any CPU
+		{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}.Debug|x86.Build.0 = Debug|Any CPU
+		{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}.Release|x86.ActiveCfg = Release|Any CPU
+		{AD5C6ADA-FC04-4105-A468-FA6CA2FED69F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

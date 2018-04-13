@@ -6,3 +6,6 @@ Blackjack/bin/Debug
 Blackjack/obj
 CardsCore/bin
 CardsCore/obj
+Utils/obj
+*.user
+*.pdb
